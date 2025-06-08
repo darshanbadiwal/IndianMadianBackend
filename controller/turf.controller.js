@@ -1,0 +1,80 @@
+const turfService = require("../services/turf.service");
+
+const registerTurf = async (req, res) => {
+  try {
+    const turfOwnerId = req.user.id; // Get from authenticated user
+    const newTurf = await turfService.createTurf({
+      ...req.body,
+      turfOwnerId
+    });
+    
+    // Update turfOwner's turfIds array
+    await turfService.addTurfToOwner(turfOwnerId, newTurf._id);
+    
+    res.status(201).json({ message: "Turf registered successfully", turf: newTurf });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getMyTurfs = async (req, res) => {
+  try {
+    const turfs = await turfService.getUserTurfs(req.user.id);
+    res.json(turfs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getAllTurfs = async (req, res) => {
+  try {
+    const {state,city} = req.body;
+    const filters = {
+      state,
+      city,
+      isApproved: isApproved === "true", // Convert string to boolean
+    };
+    const turfs = await turfService.getTurfs(filters);
+    res.json(turfs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getPendingTurfs = async (req, res) => {
+  try {
+    const turfs = await turfService.getTurfs({ status: "pending" });
+    res.json(turfs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const approveTurf = async (req, res) => {
+  try {
+    const turfId = req.params.id;
+    await turfService.updateTurfStatus(turfId, "approved");
+    res.json({ message: "Turf approved" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const rejectTurf = async (req, res) => {
+  try {
+    const turfId = req.params.id;
+    await turfService.updateTurfStatus(turfId, "rejected");
+    res.json({ message: "Turf rejected" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = {
+  registerTurf,
+  getMyTurfs,
+  getAllTurfs,
+  getPendingTurfs,
+  approveTurf,
+  rejectTurf
+};
