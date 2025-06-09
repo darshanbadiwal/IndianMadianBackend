@@ -32,7 +32,7 @@ const getAllTurfs = async (req, res) => {
     const filters = {
       state,
       city,
-      isApproved: isApproved === "true", // Convert string to boolean
+      status: "approved", // Convert string to boolean
     };
     const turfs = await turfService.getTurfs(filters);
     res.json(turfs);
@@ -69,12 +69,24 @@ const rejectTurf = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
+const getTurfById = async (req, res) => {
+  try {
+    const {turfId} = req.body;
+    const turf = await turfService.getTurfById(turfId);
+    if (!turf) {
+      return res.status(404).json({ error: 'Turf not found' });
+    }
+    res.json(turf);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 module.exports = {
   registerTurf,
   getMyTurfs,
   getAllTurfs,
   getPendingTurfs,
   approveTurf,
-  rejectTurf
+  rejectTurf,
+  getTurfById
 };

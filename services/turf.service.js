@@ -31,11 +31,15 @@ const getTurfs = async (filters = {}) => {
 const updateTurfStatus = async (turfId, status) => {
   return Turf.findByIdAndUpdate(turfId, { status }, { new: true });
 };
+const getTurfById = async (turfId) => {
+  return await Turf.findById(turfId);
+};
 
 module.exports = {
   createTurf,
   getUserTurfs,
   getTurfs,
   addTurfToOwner,
-  updateTurfStatus
+  updateTurfStatus,
+  getTurfById
 };

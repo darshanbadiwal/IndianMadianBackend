@@ -9,6 +9,7 @@ require("./configs/mongodb"); // connecting mongodb here
 const adminRoutes = require('./routes/admin.route');
 const userRoutes = require("./routes/userAuth.route"); // ✅ add this line
 const bookingRoutes = require("./routes/booking.route");
+const ownerBookingRoutes = require("./routes/ownerBooking.route");
 
 // 📌 Middleware
 app.use(express.json());
@@ -21,6 +22,7 @@ app.use("/api/user/auth", require("./routes/userAuth.route")); // login/register
 app.use("/api/turf", require("./routes/turf.route")); 
 app.use("/api/turfOwner", require("./routes/turfOwner.route"));
 app.use("/api/booking", bookingRoutes);
+app.use("/api/owner", ownerBookingRoutes);
 
 
 const port = process.env.PORT || 5000;
