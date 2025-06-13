@@ -76,7 +76,7 @@ const getTurfById = async (req, res) => {
     if (!turf) {
       return res.status(404).json({ error: 'Turf not found' });
     }
-    res.json(turf);
+    res.json(turf)
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
