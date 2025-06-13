@@ -3,6 +3,7 @@ const router = express.Router();
 const adminController = require('../controller/admin.controller');
 const userAuthController = require('../controller/userAuth.controller');
 const bookingCtrl = require("../controller/booking.controller");
+const turfController = require("../controller/turf.controller");
 
 // ✅ NEW: ADMIN PANEL — Get all registered users
 router.post("/getAllUsers", userAuthController.getAllUsers);
@@ -15,6 +16,8 @@ router.post('/login', adminController.login);
 
 // ADMIN fetches all bookings
 router.get("/booking/all", bookingCtrl.getAllBookings);
+
+router.get("/allTurf", turfController.getAllTurfs);
 
 
 router.get("/dashboard", adminController.getDashboardStats);
