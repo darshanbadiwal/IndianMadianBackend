@@ -35,6 +35,8 @@ const getAllTurfs = async (req, res) => {
       status: "approved", // Convert string to boolean
     };
     const turfs = await turfService.getTurfs(filters);
+    console.log("Turf service loaded",turfs);
+    
     res.json(turfs);
   } catch (error) {
     res.status(500).json({ error: error.message });
