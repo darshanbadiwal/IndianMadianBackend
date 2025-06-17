@@ -17,7 +17,7 @@ router.post('/login', adminController.login);
 // ADMIN fetches all bookings
 router.get("/booking/all", bookingCtrl.getAllBookings);
 
-router.get("/allTurf", turfController.getAllTurfs);
+router.post("/allTurf", turfController.getAllTurfs);
 
 
 router.get("/dashboard", adminController.getDashboardStats);
