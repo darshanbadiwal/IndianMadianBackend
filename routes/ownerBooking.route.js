@@ -1,8 +1,8 @@
 const express = require("express");
 const router  = express.Router();
 const ctrl    = require("../controller/ownerBooking.controller");
-const auth    = require("../middleware/authMiddleware");   // JWT verify
+const authMiddleware    = require("../middleware/authMiddleware");   // JWT verify
 
-router.get("/bookings", auth, ctrl.ownerBookings);
+router.get("/bookings", authMiddleware, ctrl.ownerBookings);
 
 module.exports = router;
