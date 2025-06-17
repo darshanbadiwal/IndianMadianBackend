@@ -1,4 +1,5 @@
 const turfService = require("../services/turf.service");
+const Turf = require('../models/turf.model');
 
 const registerTurf = async (req, res) => {
   try {
@@ -86,6 +87,25 @@ const getTurfById = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Delete turf by ID
+const deleteTurfById = async (req, res) => {
+  try {
+    const turfId = req.params.id;
+
+    const deletedTurf = await Turf.findByIdAndDelete(turfId);
+
+    if (!deletedTurf) {
+      return res.status(404).json({ message: 'Turf not found' });
+    }
+
+    return res.status(200).json({ message: 'Turf deleted successfully' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+
+
 module.exports = {
   registerTurf,
   getMyTurfs,
@@ -93,5 +113,6 @@ module.exports = {
   getPendingTurfs,
   approveTurf,
   rejectTurf,
-  getTurfById
+  getTurfById,
+   deleteTurfById,
 };

@@ -7,6 +7,8 @@ const TurfSchema = new Schema(
       ref: "TurfOwner", // Changed from "Owner" to "TurfOwner"
       required: true,
     },
+    email:{type: String, required: true, trim: true},
+    pincode: { type: String, required: true, trim: true },
     turfName: { type: String, required: true, trim: true },
     fullAddress: { type: String, required: true, trim: true },
     locationPin: { type: String },
@@ -40,6 +42,8 @@ const TurfSchema = new Schema(
       openingTime: { type: String, required: true },
       closingTime: { type: String, required: true },
     },
+    payementMode: { type: String,},
+    advancePayment: { type: Boolean, default: false },
     hourlyRate: { type: Number, required: true, min: 0 },
     cancellationPolicy: { type: String, required: true },
     facilityImages: {

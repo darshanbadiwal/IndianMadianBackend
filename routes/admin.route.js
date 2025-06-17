@@ -18,7 +18,7 @@ router.post('/login', adminController.login);
 router.get("/booking/all", bookingCtrl.getAllBookings);
 
 router.post("/allTurf", turfController.getAllTurfs);
-
+router.delete('/turf/:id', turfController.deleteTurfById);
 
 router.get("/dashboard", adminController.getDashboardStats);
 
