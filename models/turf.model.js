@@ -33,12 +33,12 @@ const TurfSchema = new Schema(
       required: true,
     },
     weekdayHours: {
-      opening: { type: String, required: true },
-      closing: { type: String, required: true },
+      openingTime: { type: String, required: true },
+      closingTime: { type: String, required: true },
     },
     weekendHours: {
-      opening: { type: String, required: true },
-      closing: { type: String, required: true },
+      openingTime: { type: String, required: true },
+      closingTime: { type: String, required: true },
     },
     hourlyRate: { type: Number, required: true, min: 0 },
     cancellationPolicy: { type: String, required: true },
