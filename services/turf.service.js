@@ -26,7 +26,6 @@ const getUserTurfs = async (userId) => {
 // Get all turfs (for public view)
 const getTurfs = async (filters = {}) => {
   return Turf.find(filters);
-  
 };
 
 const updateTurfStatus = async (turfId, status) => {

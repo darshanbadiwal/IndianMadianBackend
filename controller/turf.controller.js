@@ -28,14 +28,17 @@ const getMyTurfs = async (req, res) => {
 
 const getAllTurfs = async (req, res) => {
   try {
-    const {state,city,status} = req.body;
-    const filters = {
-      state,
-      city,
-      status, // Convert string to boolean
-    };
+    const { state, city, status } = req.body;
+    
+    // Create filters object only with provided values
+    const filters = {};
+    
+    if (state) filters.state = state;
+    if (city) filters.city = city;
+    if (status !== undefined) filters.status = status;
+    
     const turfs = await turfService.getTurfs(filters);
-    console.log("Turf service loaded",turfs);
+    console.log("Turf service loaded", turfs);
     
     res.json(turfs);
   } catch (error) {
