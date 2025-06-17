@@ -9,7 +9,7 @@ const TurfSchema = new Schema(
     },
     turfName: { type: String, required: true, trim: true },
     fullAddress: { type: String, required: true, trim: true },
-    locationPin: { type: String, },
+    locationPin: { type: String },
     location: {
       state: { type: String, required: true, trim: true },
       city: { type: String, required: true, trim: true },
@@ -26,7 +26,7 @@ const TurfSchema = new Schema(
       enum: ["Football", "Cricket", "Tennis", "Basketball", "Volleyball", "Badminton", "Hockey"],
       required: true,
     },
-    indoorFacility: { type: Boolean,  },
+    // indoorFacility: { type: Boolean, required: true },
     amenities: {
       type: [String],
       enum: ["Changing Rooms", "Parking", "Refreshments", "Equipment Rental", "Washrooms", "Seating Area", "WiFi"],
