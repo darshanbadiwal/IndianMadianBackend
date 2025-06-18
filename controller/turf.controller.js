@@ -1,4 +1,5 @@
 const turfService = require("../services/turf.service");
+const Turf = require('../models/turf.model');
 
 const registerTurf = async (req, res) => {
   try {
@@ -28,14 +29,17 @@ const getMyTurfs = async (req, res) => {
 
 const getAllTurfs = async (req, res) => {
   try {
-    const {state,city} = req.body;
-    const filters = {
-      state,
-      city,
-      status: "approved", // Convert string to boolean
-    };
+    const { state, city, status } = req.body;
+    
+    // Create filters object only with provided values
+    const filters = {};
+    
+    if (state) filters.state = state;
+    if (city) filters.city = city;
+    if (status !== undefined) filters.status = status;
+    
     const turfs = await turfService.getTurfs(filters);
-    console.log("Turf service loaded",turfs);
+    console.log("Turf service loaded", turfs);
     
     res.json(turfs);
   } catch (error) {
@@ -83,6 +87,25 @@ const getTurfById = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Delete turf by ID
+const deleteTurfById = async (req, res) => {
+  try {
+    const turfId = req.params.id;
+
+    const deletedTurf = await Turf.findByIdAndDelete(turfId);
+
+    if (!deletedTurf) {
+      return res.status(404).json({ message: 'Turf not found' });
+    }
+
+    return res.status(200).json({ message: 'Turf deleted successfully' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+
+
 module.exports = {
   registerTurf,
   getMyTurfs,
@@ -90,5 +113,6 @@ module.exports = {
   getPendingTurfs,
   approveTurf,
   rejectTurf,
-  getTurfById
+  getTurfById,
+   deleteTurfById,
 };
