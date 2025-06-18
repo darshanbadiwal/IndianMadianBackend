@@ -3,7 +3,7 @@ const Booking = require('../models/booking.model');
 const User = require('../models/userAuth.model');
 const Turf = require('../models/turf.model');
 // GET /api/owner/bookings
-exports.ownerBookings = async (req, res) => {
+const ownerBookings = async (req, res) => {
   try {
     const ownerId = req.ownerId;             // auth-middleware से आयेगा
     const bookings = await bookingService.getBookingsForOwner(ownerId);
@@ -78,4 +78,4 @@ const getBookingsByTurfId = async (req, res) => {
   }
 };
 
-module.exports = { getBookingsByTurfId };
+module.exports = { getBookingsByTurfId,ownerBookings };

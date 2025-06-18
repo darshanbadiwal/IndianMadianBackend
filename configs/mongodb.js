@@ -5,6 +5,6 @@ const URL_VALUE = process.env.MONGO_URI;
 
 //Connecting to DB.....
 mongoose
-  .connect(URL_VALUE)
+  .connect(URL_VALUE) // Now using a defined string variable
   .then(() => console.log("Mongo DB Connected"))
-  .catch((err) => console.log(err.message));
+  .catch((err) => console.log("MongoDB Connection Error:", err.message));
