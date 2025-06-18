@@ -2,6 +2,7 @@ const bookingService = require("../services/booking.service");
 const Booking = require('../models/booking.model');
 const User = require('../models/userAuth.model');
 const Turf = require('../models/turf.model');
+const { default: mongoose } = require("mongoose");
 // GET /api/owner/bookings
 const ownerBookings = async (req, res) => {
   try {
