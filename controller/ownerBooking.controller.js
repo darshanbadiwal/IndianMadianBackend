@@ -51,7 +51,7 @@ const getBookingsByTurfId = async (req, res) => {
         id: booking.userId._id,
         name: booking.userId.name,
         email: booking.userId.email,
-        phone: booking.userId.phone,
+        phoneNumber: booking.userId.phoneNumber,
         // profileImage: booking.userId.profileImage
       },
       turfInfo: {
