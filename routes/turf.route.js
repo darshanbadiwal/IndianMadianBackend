@@ -10,4 +10,7 @@ router.get('/pending', turfController.getPendingTurfs);
 router.post('/:id/approve', turfController.approveTurf);
 router.post('/:id/reject', turfController.rejectTurf);
 router.post('/byId', turfController.getTurfById);
+
+router.post("/turfByCity", turfController.getTurfsByCity);
+
 module.exports = router;
