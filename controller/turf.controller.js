@@ -2,20 +2,35 @@ const turfService = require("../services/turf.service");
 const Turf = require('../models/turf.model');
 
 const registerTurf = async (req, res) => {
-  try {
-    const turfOwnerId = req.user.id; // Get from authenticated user
-    const newTurf = await turfService.createTurf({
+ const turfOwnerId = req.user.id; // Get from authenticated user
+
+try {
+  // Check if turf already exists for this owner (you might want to check by some unique field)
+  const existingTurf = await turfService.findTurfByOwnerAndName(turfOwnerId, req.body.name);
+  
+  let turf;
+  if (existingTurf) {
+    // Update existing turf
+    turf = await turfService.updateTurf(existingTurf._id, {
+      ...req.body,
+      turfOwnerId
+    });
+    res.status(200).json({ message: "Turf updated successfully", turf });
+  } else {
+    // Create new turf
+    turf = await turfService.createTurf({
       ...req.body,
       turfOwnerId
     });
     
     // Update turfOwner's turfIds array
-    await turfService.addTurfToOwner(turfOwnerId, newTurf._id);
+    await turfService.addTurfToOwner(turfOwnerId, turf._id);
     
-    res.status(201).json({ message: "Turf registered successfully", turf: newTurf });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(201).json({ message: "Turf registered successfully", turf });
   }
+} catch (error) {
+  res.status(500).json({ error: error.message });
+}
 };
 
 const getMyTurfs = async (req, res) => {

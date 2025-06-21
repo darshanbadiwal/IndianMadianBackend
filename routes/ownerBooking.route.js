@@ -3,7 +3,7 @@ const router  = express.Router();
 const ctrl    = require("../controller/ownerBooking.controller");
 const authMiddleware    = require("../Middleware/authMiddleware");   // JWT verify
 
-router.get("/bookings", authMiddleware, ctrl.ownerBookings);
+router.post("/bookings", ctrl.createOwnerBooking);
 router.get('/turf/:turfId', authMiddleware, ctrl.getBookingsByTurfId);
 
 module.exports = router;
