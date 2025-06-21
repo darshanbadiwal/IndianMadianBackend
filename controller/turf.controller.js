@@ -121,6 +121,46 @@ const deleteTurfById = async (req, res) => {
 };
 
 
+ const getTurfsByCity = async (req, res) => {
+  try {
+    const { city } = req.body; // Changed from req.params to req.body
+    
+    if (!city) {
+      return res.status(400).json({
+        success: false,
+        message: "City parameter is required in the request body"
+      });
+    }
+
+    // Find turfs with matching city and approved status
+    const turfs = await Turf.find({ 
+      "location.city": { $regex: new RegExp(city, 'i') }, // Case-insensitive search
+      status: 'approved' 
+    }).populate('userId', 'name email'); // Populate owner details
+
+    if (turfs.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: `No approved turfs found in ${city}`
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      count: turfs.length,
+      data: turfs
+    });
+
+  } catch (error) {
+    console.error("Error fetching turfs by city:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching turfs",
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   registerTurf,
   getMyTurfs,
@@ -130,4 +170,5 @@ module.exports = {
   rejectTurf,
   getTurfById,
    deleteTurfById,
+   getTurfsByCity
 };
