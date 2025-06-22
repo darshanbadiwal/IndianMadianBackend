@@ -35,11 +35,31 @@ const getTurfById = async (turfId) => {
   return await Turf.findById(turfId);
 };
 
+const updateUserTurf = async (userId, updateData) => {
+  try {
+    // Find and update the user's turf
+    const turf = await Turf.findOneAndUpdate(
+      { userId: userId },
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    if (!turf) {
+      throw new Error("No turf found for this user");
+    }
+
+    return turf;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
 module.exports = {
   createTurf,
   getUserTurfs,
   getTurfs,
   addTurfToOwner,
   updateTurfStatus,
-  getTurfById
+  getTurfById,
+ updateUserTurf 
+  
 };
