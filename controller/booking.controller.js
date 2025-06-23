@@ -59,6 +59,8 @@ exports.getAllBookings = async (req,res)=>{
     res.status(500).json({ message:"Server Error" });
   }
 };
+
+//User side Cancle booking button API 
 // ========== USER SIDE: cancel a booking ==========
 exports.cancelBooking = async (req, res) => {
   try {
@@ -69,32 +71,48 @@ exports.cancelBooking = async (req, res) => {
       { new: true }
     );
     if (!booking) {
-      return res.status(404).json({ message: 'Booking not found' });
+      return res.status(404).json({ success: false, message: 'Booking not found' });
     }
-    return res.status(200).json(booking);
+    return res.status(200).json({
+  success: true,
+  message: 'Booking cancelled successfully',
+  booking
+});
   } catch (err) {
     console.error("Cancel booking error:", err);
-    return res.status(500).json({ message: "Server Error" });
+    return res.status(500).json({ success: false, message: "Server Error" });
   }
 };
 
-// ========== USER SIDE: reschedule a booking ==========
+//User side Rechudle booking button 
 exports.rescheduleBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const { newStartTime, newEndTime } = req.body;
+
     const booking = await Booking.findByIdAndUpdate(
       bookingId,
-      { startTime: newStartTime, endTime: newEndTime, status: 'Rescheduled' },
+      {
+        startTime: newStartTime,
+        endTime: newEndTime,
+        status: 'Rescheduled'
+      },
       { new: true }
     );
+
     if (!booking) {
-      return res.status(404).json({ message: 'Booking not found' });
+      return res.status(404).json({ success: false, message: 'Booking not found' });
     }
-    return res.status(200).json(booking);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Booking rescheduled successfully',
+      booking
+    });
   } catch (err) {
     console.error("Reschedule booking error:", err);
-    return res.status(500).json({ message: "Server Error" });
+    return res.status(500).json({ success: false, message: "Server Error" });
   }
 };
+
 
