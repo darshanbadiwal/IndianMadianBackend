@@ -11,10 +11,10 @@ router.get("/:userId", bookingCtrl.getUserBookings);
 
 // Cancel a booking
 // PATCH /api/bookings/:bookingId/cancel
-//router.patch("/:bookingId/cancel", bookingCtrl.cancelBooking);
+router.patch("/:bookingId/cancel", bookingCtrl.cancelBooking);
 
 // Reschedule a booking.
-// PATCH /api/bookings/:bookingId/reschedule
-//router.patch("/:bookingId/reschedule", bookingCtrl.rescheduleBooking);
+// PATCH /api/bookings/:bookingId/reschedule/
+router.patch("/:bookingId/reschedule", bookingCtrl.rescheduleBooking);
 
 module.exports = router;

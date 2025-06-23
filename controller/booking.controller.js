@@ -44,6 +44,7 @@ exports.getUserBookings = async (req, res) => {
   }
 };
 
+
 // ========== ADMIN SIDE: fetch all bookings ==========
 exports.getAllBookings = async (req,res)=>{
   try{
@@ -56,6 +57,44 @@ exports.getAllBookings = async (req,res)=>{
   }catch(err){
     console.error("Fetch bookings error:",err);
     res.status(500).json({ message:"Server Error" });
+  }
+};
+// ========== USER SIDE: cancel a booking ==========
+exports.cancelBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const booking = await Booking.findByIdAndUpdate(
+      bookingId,
+      { status: 'Cancelled' },
+      { new: true }
+    );
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+    return res.status(200).json(booking);
+  } catch (err) {
+    console.error("Cancel booking error:", err);
+    return res.status(500).json({ message: "Server Error" });
+  }
+};
+
+// ========== USER SIDE: reschedule a booking ==========
+exports.rescheduleBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const { newStartTime, newEndTime } = req.body;
+    const booking = await Booking.findByIdAndUpdate(
+      bookingId,
+      { startTime: newStartTime, endTime: newEndTime, status: 'Rescheduled' },
+      { new: true }
+    );
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+    return res.status(200).json(booking);
+  } catch (err) {
+    console.error("Reschedule booking error:", err);
+    return res.status(500).json({ message: "Server Error" });
   }
 };
 
