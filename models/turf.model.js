@@ -45,7 +45,7 @@ const TurfSchema = new Schema(
     payementMode: { type: String,},
     advancePayment: { type: Boolean, default: false },
     hourlyRate: { type: Number, required: true, min: 0 },
-    cancellationPolicy: { type: String, required: true },
+    //cancellationPolicy: { type: String, required: true },
     facilityImages: {
       type: [String], // Array of image URLs
       validate: {
