@@ -53,6 +53,14 @@ const updateUserTurf = async (userId, updateData) => {
     throw new Error(error.message);
   }
 };
+// Create the missing function
+async function findTurfByOwnerAndName(ownerId, turfName) {
+  try {
+    return await Turf.findOne({ userId: ownerId, turfName: turfName });
+  } catch (error) {
+    throw new Error("Error finding turf by owner and name: " + error.message);
+  }
+}
 module.exports = {
   createTurf,
   getUserTurfs,
@@ -60,6 +68,7 @@ module.exports = {
   addTurfToOwner,
   updateTurfStatus,
   getTurfById,
- updateUserTurf 
+ updateUserTurf,
+  findTurfByOwnerAndName
   
 };
