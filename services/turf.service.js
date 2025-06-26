@@ -61,6 +61,17 @@ async function findTurfByOwnerAndName(ownerId, turfName) {
     throw new Error("Error finding turf by owner and name: " + error.message);
   }
 }
+const updateTurf = async (turfId, updateData) => {
+  try {
+    return await Turf.findByIdAndUpdate(
+      turfId,
+      updateData,
+      { new: true, runValidators: true }
+    );
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
 module.exports = {
   createTurf,
   getUserTurfs,
@@ -69,6 +80,7 @@ module.exports = {
   updateTurfStatus,
   getTurfById,
  updateUserTurf,
+  updateTurf,
   findTurfByOwnerAndName
   
 };

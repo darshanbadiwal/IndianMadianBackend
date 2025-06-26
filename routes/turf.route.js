@@ -13,4 +13,6 @@ router.post('/byId', turfController.getTurfById);
 
 router.post("/turfByCity", turfController.getTurfsByCity);
 
+router.put('/:id/edit', authMiddleware, turfController.editTurf);
+
 module.exports = router;

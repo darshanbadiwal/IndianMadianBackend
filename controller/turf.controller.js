@@ -62,6 +62,30 @@ const getAllTurfs = async (req, res) => {
   }
 };
 
+//edit existing turf 
+const editTurf = async (req, res) => {
+  try {
+    const turfId = req.params.id;
+    const updates = req.body;
+    
+    // Verify the user owns this turf
+    const turf = await turfService.getTurfById(turfId);
+    if (!turf) {
+      return res.status(404).json({ error: 'Turf not found' });
+    }
+    
+    if (turf.userId.toString() !== req.user.id) {
+      return res.status(403).json({ error: 'Not authorized to edit this turf' });
+    }
+    
+    // Update the turf
+    const updatedTurf = await turfService.updateTurf(turfId, updates);
+    res.status(200).json({ message: "Turf updated successfully", turf: updatedTurf });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 const getPendingTurfs = async (req, res) => {
   try {
     const turfs = await turfService.getTurfs({ status: "pending" });
@@ -163,12 +187,13 @@ const deleteTurfById = async (req, res) => {
 
 module.exports = {
   registerTurf,
+  editTurf,
   getMyTurfs,
   getAllTurfs,
   getPendingTurfs,
   approveTurf,
   rejectTurf,
   getTurfById,
-   deleteTurfById,
-   getTurfsByCity
+  deleteTurfById,
+  getTurfsByCity
 };
