@@ -43,7 +43,12 @@ const TurfSchema = new Schema(
       closingTime: { type: String, required: true },
     },
     payementMode: { type: String,},
-    advancePayment: { type: Boolean, default: false },
+    advancePayment: {
+  type: Number,
+  min: 10,
+  max: 90,
+  default: 30, // You can adjust this default as needed
+},
     hourlyRate: { type: Number, required: true, min: 0 },
     //cancellationPolicy: { type: String, required: true },
     facilityImages: {
