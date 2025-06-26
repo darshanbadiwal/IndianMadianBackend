@@ -42,15 +42,16 @@ const TurfSchema = new Schema(
       openingTime: { type: String, required: true },
       closingTime: { type: String, required: true },
     },
-    payementMode: { type: String,},
     advancePayment: {
   type: Number,
   min: 10,
   max: 90,
   default: 30, // You can adjust this default as needed
 },
-    hourlyRate: { type: Number, required: true, min: 0 },
-    //cancellationPolicy: { type: String, required: true },
+    weekdayRate: { type: Number, required: true, min: 0 },
+    weekendRate: { type: Number, required: true, min: 0 },
+
+    //cancellationPolicy: { type: String, required: true }, 
     facilityImages: {
       type: [String], // Array of image URLs
       validate: {
