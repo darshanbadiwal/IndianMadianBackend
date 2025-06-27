@@ -188,6 +188,9 @@ const getTurfsByCity = async (req, res) => {
   }
 };
 
+
+
+
 module.exports = {
   registerTurf,
   editTurf,
@@ -198,5 +201,6 @@ module.exports = {
   rejectTurf,
   getTurfById,
   deleteTurfById,
-  getTurfsByCity
+  getTurfsByCity,
+  
 };
