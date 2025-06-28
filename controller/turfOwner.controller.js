@@ -35,7 +35,7 @@ const forgotPassword = async (req, res) => {
   await owner.save();
 
   const transporter = nodemailer.createTransport({
-    host: "smtp.zoho.in",          // ✅ USE ZOHO
+    host: "smtp.zoho.in",
     port: 465,
     secure: true,
     auth: {
@@ -44,13 +44,21 @@ const forgotPassword = async (req, res) => {
     }
   });
 
-  await transporter.sendMail({
-    to: email,
-    subject: "Indian Maidan - Password Reset OTP",
-    html: `<p>Your OTP is <b>${otp}</b>. It is valid for 1 hour.</p>`
-  });
+  try {
+    await transporter.sendMail({
+      from: "info@indianmaidan.com", // ✅ required for Zoho
+      to: email,
+      subject: "Indian Maidan - Password Reset OTP",
+      html: `<p>Your OTP is <b>${otp}</b>. It is valid for 1 hour.</p>`
+    });
 
-  res.status(200).json({ message: "OTP sent to email" });
+    console.log("✅ OTP sent to:", email);
+    return res.status(200).json({ message: "OTP sent to email" });
+
+  } catch (error) {
+    console.error("❌ Failed to send OTP email:", error);
+    return res.status(500).json({ message: "Failed to send OTP", error: error.message });
+  }
 };
 
 // ✅ 4. Reset Password
