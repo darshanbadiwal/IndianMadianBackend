@@ -10,7 +10,12 @@ const turfOwnerSchema = new mongoose.Schema({
     ref: 'Turf',
     required: true
   }],
-  createdAt: { type: Date, default: Date.now }
+  
+  createdAt: { type: Date, default: Date.now },
+  // 👇 Add these two linesv for forgot password for turf owner
+  resetToken: { type: String },
+  resetTokenExpires: { type: Date },
 });
+
 
 module.exports = mongoose.model('TurfOwner', turfOwnerSchema);
