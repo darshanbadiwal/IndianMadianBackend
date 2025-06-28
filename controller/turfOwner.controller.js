@@ -21,6 +21,7 @@ const loginTurfOwner = async (req, res) => {
 
 // ✅ 3. Forgot Password
 const forgotPassword = async (req, res) => {
+    console.log("📥 Forgot Password Request Received:", req.body);
   const { email } = req.body;
   const owner = await TurfOwner.findOne({ email });
   if (!owner) return res.status(404).json({ message: "Owner not found" });
@@ -49,6 +50,7 @@ const forgotPassword = async (req, res) => {
 
 // ✅ 4. Reset Password
 const resetPassword = async (req, res) => {
+  console.log("🔁 Reset Password Request:", req.body);
   const { email, otp, newPassword } = req.body;
   const owner = await TurfOwner.findOne({ email, resetToken: otp });
 
