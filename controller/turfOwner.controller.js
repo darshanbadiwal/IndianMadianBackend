@@ -33,8 +33,8 @@ const forgotPassword = async (req, res) => {
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: "your@gmail.com",           // 👈 apna Gmail yaha likhna
-      pass: "your_app_password"         // 👈 Gmail App Password (Google settings se banta hai)
+      user: "darshanbadiwal05@gmail.com",           // 👈 apna Gmail yaha likhna
+      pass: "kelh jnyu vtrg ppeo"         // 👈 Gmail App Password (Google settings se banta hai)
     }
   });
 
