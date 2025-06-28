@@ -1,5 +1,7 @@
 const turfOwnerService = require('../services/turfOwner.service');
-
+const nodemailer = require('nodemailer');
+const bcrypt = require('bcrypt');
+const TurfOwner = require('../models/turfOwner.model'); // ✅ Needed for DB lookups
 const registerTurfOwner = async (req, res) => {
   try {
     const turfOwner = await turfOwnerService.registerTurfOwner(req.body);
@@ -51,16 +53,23 @@ const forgotPassword = async (req, res) => {
 // ✅ 4. Reset Password
 const resetPassword = async (req, res) => {
   console.log("🔁 Reset Password Request:", req.body);
+
   const { email, otp, newPassword } = req.body;
+
   const owner = await TurfOwner.findOne({ email, resetToken: otp });
 
   if (!owner || owner.resetTokenExpires < Date.now()) {
     return res.status(400).json({ message: "Invalid or expired OTP" });
   }
 
-  owner.password = newPassword;
+  // ✅ Hash the new password before saving
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  owner.password = hashedPassword;
+
+  // ✅ Clear OTP
   owner.resetToken = undefined;
   owner.resetTokenExpires = undefined;
+
   await owner.save();
 
   res.status(200).json({ message: "Password reset successful" });
