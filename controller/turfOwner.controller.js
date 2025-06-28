@@ -23,21 +23,24 @@ const loginTurfOwner = async (req, res) => {
 
 // ✅ 3. Forgot Password
 const forgotPassword = async (req, res) => {
-    console.log("📥 Forgot Password Request Received:", req.body);
+  console.log("📥 Forgot Password Request Received:", req.body);
+
   const { email } = req.body;
   const owner = await TurfOwner.findOne({ email });
   if (!owner) return res.status(404).json({ message: "Owner not found" });
 
-  const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
   owner.resetToken = otp;
   owner.resetTokenExpires = Date.now() + 3600000; // 1 hour validity
   await owner.save();
 
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.zoho.in",          // ✅ USE ZOHO
+    port: 465,
+    secure: true,
     auth: {
-      user: "darshanbadiwal05@gmail.com",           // 👈 apna Gmail yaha likhna
-      pass: "kelh jnyu vtrg ppeo"         // 👈 Gmail App Password (Google settings se banta hai)
+      user: "info@indianmaidan.com",
+      pass: "g5UpeTQ8N5mi"
     }
   });
 
