@@ -187,6 +187,30 @@ const getTurfsByCity = async (req, res) => {
     });
   }
 };
+const updateTurfAvailability = async (req, res) => { // This function helps turf owners to turn on and off their turf availability
+  try {
+    const { turfId } = req.params;
+    const { isAvailable } = req.body;
+
+    const turf = await Turf.findById(turfId);
+    if (!turf) {
+      return res.status(404).json({ message: "Turf not found" });
+    }
+
+    // Optional: restrict toggle to the owner only
+    if (turf.userId.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized to update this turf" });
+    }
+
+    turf.isAvailable = isAvailable;
+    await turf.save();
+
+    res.status(200).json({ message: "Turf availability updated", turf });
+  } catch (error) {
+    console.error("Error updating turf availability:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 
 
@@ -202,5 +226,6 @@ module.exports = {
   getTurfById,
   deleteTurfById,
   getTurfsByCity,
+  updateTurfAvailability  //this function help turf owner to turn on and off their turf for some times etc..
   
 };

@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const TurfSchema = new Schema(
+  
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -60,6 +61,11 @@ const TurfSchema = new Schema(
         },
         message: "You can upload a maximum of 10 images",
       },
+    },
+    // NEW FIELD for turf on off ✅
+    isAvailable: {
+      type: Boolean,
+      default: true,
     },
    // isApproved: { type: Boolean, default: false }, // New field added//
     status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' }

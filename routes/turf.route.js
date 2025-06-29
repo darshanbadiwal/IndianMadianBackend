@@ -19,6 +19,9 @@ router.put('/:id/edit', authMiddleware, turfController.editTurf);
 router.get("/total-summary/:turfId", getTotalSummaryByTurf);
 
 
+//this function will help turf owner to on and off their turf for some times etc..
+router.patch("/availability/:turfId", authMiddleware, turfController.updateTurfAvailability);
+
 
 
 module.exports = router;
