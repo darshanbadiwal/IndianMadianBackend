@@ -1,30 +1,53 @@
 const Booking = require("../models/booking.model");
 
 // ========== USER SIDE: create booking ==========
-exports.createBooking = async (req,res)=>{
-  try{
-    const { userId, turfId, startTime, endTime, totalPrice } = req.body;
+exports.createBooking = async (req, res) => {
+  try {
+    const {
+      userId,
+      turfId,
+      startTime,
+      endTime,
+      sport,
+      bookingDate,
+      selectedSlots,
+      advancePercentage,
+      advancePaid,
+      amountDueAtVenue,
+      totalPrice
+    } = req.body;
 
-    // basic validation
-    if(!userId || !turfId || !startTime || !endTime || !totalPrice){
-      return res.status(400).json({ message:"Missing fields" });
+    // Basic validation
+    if (
+      !userId || !turfId || !startTime || !endTime || !sport ||
+      !bookingDate || !selectedSlots || !totalPrice
+    ) {
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
+    // Create and save booking
     const booking = await Booking.create({
       userId,
       turfId,
       startTime,
       endTime,
+      sport,
+      bookingDate,
+      selectedSlots,
+      advancePercentage,
+      advancePaid,
+      amountDueAtVenue,
       totalPrice,
-      status: "Confirmed"        // अभी सीधे Confirm कर रहे हैं
+      status: "Confirmed" // or "Pending" if payment isn't fully made
     });
 
     return res.status(201).json(booking);
-  }catch(err){
-    console.error("Create booking error:",err);
-    res.status(500).json({ message:"Server Error" });
+  } catch (err) {
+    console.error("Create booking error:", err);
+    res.status(500).json({ message: "Server Error" });
   }
 };
+
 
 // ========== USER SIDE: fetch bookings for a specific user ==========
 exports.getUserBookings = async (req, res) => {
