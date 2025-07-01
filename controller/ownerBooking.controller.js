@@ -7,11 +7,10 @@ const { default: mongoose } = require("mongoose");
 
 const { sendWhatsAppMessage } = require('../utils/gupshup');
 
-
 // GET /api/owner/bookings
 const ownerBookings = async (req, res) => {
   try {
-    const ownerId = req.ownerId;             // auth-middleware से आयेगा
+    const ownerId = req.ownerId;
     const bookings = await bookingService.getBookingsForOwner(ownerId);
     res.status(200).json({ success: true, data: bookings });
   } catch (err) {
@@ -20,8 +19,7 @@ const ownerBookings = async (req, res) => {
   }
 };
 
-
-
+// ✅ Booking list turfId se (SAFE - no phone/email)
 const getBookingsByTurfId = async (req, res) => {
   try {
     const { turfId } = req.params;
@@ -33,7 +31,7 @@ const getBookingsByTurfId = async (req, res) => {
     const bookings = await Booking.find({ turfId })
       .populate({
         path: 'userId',
-        select: 'name email phoneNumber profileImage',
+        select: 'name', // ✅ Only show name
         model: User
       })
       .populate({
@@ -44,14 +42,9 @@ const getBookingsByTurfId = async (req, res) => {
       .sort({ startTime: 1 });
 
     const structuredResponse = bookings.map(booking => {
-      // Add null checks for populated fields
-     
       const userInfo = booking.userId ? {
         id: booking.userId._id,
-        name: booking.userId.name,
-        email: booking.userId.email,
-        phoneNumber: booking.userId.phoneNumber,
-        // profileImage: booking.userId.profileImage
+        name: booking.userId.name
       } : null;
 
       const turfInfo = booking.turfId ? {
@@ -80,20 +73,19 @@ const getBookingsByTurfId = async (req, res) => {
     res.json({
       success: true,
       count: bookings.length,
-      data: structuredResponse.filter(item => item.userInfo && item.turfInfo) // Filter out invalid entries
+      data: structuredResponse.filter(item => item.userInfo && item.turfInfo)
     });
   } catch (error) {
     console.error('Error fetching bookings:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message 
+      error: error.message
     });
   }
 };
 
-//whats app message alert gupshup code
-
+// ✅ Booking creation and WhatsApp simulation (SAFE)
 const createOwnerBooking = async (req, res) => {
   try {
     const { turfId, userId, startTime, endTime, totalPrice } = req.body;
@@ -108,15 +100,14 @@ const createOwnerBooking = async (req, res) => {
 
     const turf = await Turf.findById(turfId);
     const owner = await TurfOwner.findById(turf.userId);
-    const user = await User.findById(userId); // optional: for user name
+    const user = await User.findById(userId).select("name"); // ✅ Only get name
 
     if (!owner || !owner.phone) {
       return res.status(404).json({ message: 'Owner phone number not found' });
     }
 
-    // ✅ Simulate WhatsApp
     await sendWhatsAppMessage(
-      owner.phone,               // 📱 Must include country code like +91xxxxxxxxxx
+      owner.phone,
       owner.name,
       user?.name || "Customer",
       `${startTime}–${endTime}`,
@@ -124,11 +115,14 @@ const createOwnerBooking = async (req, res) => {
     );
 
     res.status(200).json({ message: 'Booking saved and WhatsApp simulated!', booking });
-
   } catch (error) {
     console.error('❌ Booking Error:', error.message);
     res.status(500).json({ error: 'Failed to create booking' });
   }
 };
 
-module.exports = { getBookingsByTurfId,ownerBookings,createOwnerBooking };
+module.exports = {
+  getBookingsByTurfId,
+  ownerBookings,
+  createOwnerBooking
+};
