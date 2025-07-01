@@ -56,18 +56,24 @@ const getBookingsByTurfId = async (req, res) => {
         facilities: booking.turfId.facilities
       } : null;
 
-      return {
-        bookingInfo: {
-          id: booking._id,
-          startTime: booking.startTime,
-          endTime: booking.endTime,
-          totalPrice: booking.totalPrice,
-          status: booking.status,
-          createdAt: booking.createdAt
-        },
-        userInfo,
-        turfInfo
-      };
+  return {
+  bookingInfo: {
+    id: booking._id,
+    startTime: booking.startTime,
+    endTime: booking.endTime,
+    totalPrice: booking.totalPrice,
+    status: booking.status,
+    createdAt: booking.createdAt,
+    advancePaid: booking.advancePaid,                // <-- Add this
+    amountDueAtVenue: booking.amountDueAtVenue,      // <-- Add this
+    advancePercentage: booking.advancePercentage,    // <-- Add this
+    selectedSlots: booking.selectedSlots,            // <-- Add this
+    sport: booking.sport,                            // (optional)
+    bookingDate: booking.bookingDate                 // (optional)
+  },
+  userInfo,
+  turfInfo
+};
     });
 
     res.json({
