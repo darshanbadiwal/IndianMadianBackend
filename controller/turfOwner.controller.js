@@ -85,10 +85,37 @@ const resetPassword = async (req, res) => {
 
   res.status(200).json({ message: "Password reset successful" });
 };
+//this code is help for in to get the turf owner signup details on thier profile setting option
+const getProfile = async (req, res) => {
+  try {
+    // req.user.id middleware se aayega (JWT verify ke baad)
+    const owner = await TurfOwner.findById(req.user.id).select('-password -resetToken -resetTokenExpires');
+    if (!owner) return res.status(404).json({ message: "Owner not found" });
+    res.json(owner);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+//this APi is help to turf owner to update thier profile details like name and phone number
+const updateProfile = async (req, res) => {
+  try {
+    const { name, phone } = req.body;
+    const owner = await TurfOwner.findByIdAndUpdate(
+      req.user.id,
+      { name, phone },
+      { new: true, select: '-password -resetToken -resetTokenExpires' }
+    );
+    res.json(owner);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 module.exports = {
   registerTurfOwner,
   loginTurfOwner,
    forgotPassword,      // 👈 Add this line
-  resetPassword     
+  resetPassword,
+  getProfile,
+  updateProfile 
 };
