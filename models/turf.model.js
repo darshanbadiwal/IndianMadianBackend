@@ -16,6 +16,8 @@ const TurfSchema = new Schema(
     location: {
       state: { type: String, required: true, trim: true },
       city: { type: String, required: true, trim: true },
+      lat: { type: Number, required: true },   // <-- Add this
+  lng: { type: Number, required: true }    // <-- Add this
     },
     contactNumber: {
       type: String,
