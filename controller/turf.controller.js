@@ -49,6 +49,15 @@ const editTurf = async (req, res) => {
     if (req.body.weekdayRate !== undefined) updates.weekdayRate = req.body.weekdayRate;
     if (req.body.weekendRate !== undefined) updates.weekendRate = req.body.weekendRate;
 
+    // ✅ NESTED LOCATION UPDATE (IMPORTANT!)
+    if (req.body.location) {
+      updates['location.state'] = req.body.location.state;
+      updates['location.city'] = req.body.location.city;
+      updates['location.lat'] = req.body.location.lat;
+      updates['location.lng'] = req.body.location.lng;
+      delete updates.location; // Remove the nested object to avoid overwrite
+    }
+
     const turf = await turfService.getTurfById(turfId);
     if (!turf) {
       return res.status(404).json({ error: 'Turf not found' });
