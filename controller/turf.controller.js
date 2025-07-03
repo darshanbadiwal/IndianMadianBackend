@@ -6,7 +6,7 @@ const registerTurf = async (req, res) => {
   const turfOwnerId = req.user.id;
 
   try {
-    const existingTurf = await turfService.findTurfByOwnerAndName(turfOwnerId, req.body.name);
+    const existingTurf = await turfService.findTurfByOwnerAndName(turfOwnerId, req.body.turfName);
 
     let turf;
     if (existingTurf) {
