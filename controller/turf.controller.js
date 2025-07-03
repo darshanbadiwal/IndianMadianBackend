@@ -70,7 +70,8 @@ const editTurf = async (req, res) => {
     const updatedTurf = await turfService.updateTurf(turfId, updates);
     res.status(200).json({ message: "Turf updated successfully", turf: updatedTurf });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+    res.status(500).json({ error: error.message, details: error.errors || error });
   }
 };
 
@@ -220,7 +221,6 @@ const updateTurfAvailability = async (req, res) => { // This function helps turf
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 
 
