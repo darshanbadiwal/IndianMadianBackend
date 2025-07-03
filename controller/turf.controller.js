@@ -35,7 +35,11 @@ const registerTurf = async (req, res) => {
       res.status(201).json({ message: "Turf registered successfully", turf });
     }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Turf Register Error:", error); // <-- Add this for backend logs
+    res.status(500).json({
+      error: error.message,
+      details: error.errors || error.stack || error
+    });
   }
 };
 
