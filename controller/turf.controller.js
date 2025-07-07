@@ -226,6 +226,20 @@ const updateTurfAvailability = async (req, res) => { // This function helps turf
   }
 };
 
+//it will help to get all turf city list to main booking webiste city page filter dropdown 
+const getApprovedCities = async (req, res) => {
+  try {
+    const cities = await Turf.distinct("location.city", { status: "approved" });
+    res.status(200).json({ success: true, cities });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch approved cities",
+      error: error.message,
+    });
+  }
+};
+
 
 
 module.exports = {
@@ -239,6 +253,6 @@ module.exports = {
   getTurfById,
   deleteTurfById,
   getTurfsByCity,
-  updateTurfAvailability  //this function help turf owner to turn on and off their turf for some times etc..
-  
+  updateTurfAvailability, //this function help turf owner to turn on and off their turf for some times etc..
+   getApprovedCities //it will help to get all turf city list to main booking webiste city page filter dropdown
 };

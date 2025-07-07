@@ -22,6 +22,9 @@ router.get("/total-summary/:turfId", getTotalSummaryByTurf);
 //this function will help turf owner to on and off their turf for some times etc..
 router.patch("/availability/:turfId", authMiddleware, turfController.updateTurfAvailability);
 
+//it will help to get all turf city list to main booking webiste city page filter dropdown
+router.get('/approved-cities', turfController.getApprovedCities);
+
 
 
 module.exports = router;
