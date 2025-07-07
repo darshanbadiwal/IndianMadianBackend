@@ -6,37 +6,46 @@ const registerTurf = async (req, res) => {
   const turfOwnerId = req.user.id;
 
   try {
-    const existingTurf = await turfService.findTurfByOwnerAndName(turfOwnerId, req.body.turfName);
+    const {
+      turfName,
+      location,
+      weekdayRate,
+      weekendRate,
+      ...rest
+    } = req.body;
+
+    // 🔐 Validate nested location fields (backend-safe)
+    if (!location || !location.state || !location.city || !location.lat || !location.lng) {
+      return res.status(400).json({
+        error: "Incomplete location details. Please provide state, city, lat and lng."
+      });
+    }
+
+    const existingTurf = await turfService.findTurfByOwnerAndName(turfOwnerId, turfName);
+
+    const turfPayload = {
+      ...rest,
+      turfName,
+      location,
+      turfOwnerId,
+      weekdayRate,
+      weekendRate
+    };
 
     let turf;
+
     if (existingTurf) {
-      // ✅ UPDATE existing turf
-      const updates = {
-        ...req.body,
-        turfOwnerId,
-      };
-
-      // ✅ Ensure price fields are updated only if present
-      if (req.body.weekdayRate !== undefined) updates.weekdayRate = req.body.weekdayRate;
-      if (req.body.weekendRate !== undefined) updates.weekendRate = req.body.weekendRate;
-
-      turf = await turfService.updateTurf(existingTurf._id, updates);
-      res.status(200).json({ message: "Turf updated successfully", turf });
+      turf = await turfService.updateTurf(existingTurf._id, turfPayload);
+      return res.status(200).json({ message: "Turf updated successfully", turf });
     } else {
-      // ✅ CREATE new turf
-      turf = await turfService.createTurf({
-        ...req.body,
-        turfOwnerId,
-        weekdayRate: req.body.weekdayRate,
-        weekendRate: req.body.weekendRate,
-      });
-
+      turf = await turfService.createTurf(turfPayload);
       await turfService.addTurfToOwner(turfOwnerId, turf._id);
-      res.status(201).json({ message: "Turf registered successfully", turf });
+      return res.status(201).json({ message: "Turf registered successfully", turf });
     }
+
   } catch (error) {
-    console.error("Turf Register Error:", error); // <-- Add this for backend logs
-    res.status(500).json({
+    console.error("Turf Register Error:", error);
+    return res.status(500).json({
       error: error.message,
       details: error.errors || error.stack || error
     });
