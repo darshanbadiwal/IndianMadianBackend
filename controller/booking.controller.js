@@ -57,7 +57,7 @@ exports.getUserBookings = async (req, res) => {
     // Find all bookings for this user, and populate turf info
     const bookings = await Booking
       .find({ userId })
-      .populate("turfId", "turfName fullAddress image surfaceType amenities lat lng")     // only need turfName field
+      .populate("turfId", "turfName fullAddress image surfaceType amenities")     // only need turfName field
       .sort({ startTime: 1 });
 
     return res.status(200).json(bookings);
