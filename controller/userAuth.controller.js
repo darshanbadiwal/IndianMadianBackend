@@ -124,9 +124,71 @@ const getAllUsers=async(req, res)=> {
       });
     }
   }
+//forgot password functions for user in main booking website 
+const nodemailer = require("nodemailer");
+
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  console.log("📥 Forgot Password Request:", email);
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.resetToken = otp;
+    user.resetTokenExpires = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    const transporter = nodemailer.createTransport({
+      host: "smtp.zoho.in",
+      port: 465,
+      secure: true,
+      auth: {
+        user: "info@indianmaidan.com",
+        pass: "g5UpeTQ8N5mi"
+      }
+    });
+
+    await transporter.sendMail({
+      from: "info@indianmaidan.com",
+      to: email,
+      subject: "Indian Maidan - Password Reset OTP",
+      html: `<p>Your OTP is <b>${otp}</b>. It is valid for 1 hour.</p>`
+    });
+
+    res.status(200).json({ message: "OTP sent to your email" });
+  } catch (error) {
+    console.error("❌ Forgot Password Error:", error);
+    res.status(500).json({ message: "Failed to send OTP", error: error.message });
+  }
+};
+//Reset password function for user in main booking website
+const resetPassword = async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  try {
+    const user = await User.findOne({ email, resetToken: otp });
+    if (!user || user.resetTokenExpires < Date.now()) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.resetToken = undefined;
+    user.resetTokenExpires = undefined;
+    await user.save();
+
+    res.status(200).json({ message: "Password reset successful" });
+  } catch (error) {
+    console.error("❌ Reset Password Error:", error);
+    res.status(500).json({ message: "Reset failed", error: error.message });
+  }
+};
 
 module.exports = {
   register,
   login,
-  getAllUsers, // ✅ Export the new function
+  getAllUsers,
+  forgotPassword,
+  resetPassword  
 };

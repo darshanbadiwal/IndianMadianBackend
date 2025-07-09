@@ -9,7 +9,7 @@ const userSchema = new Schema(
       unique: true,
       trim: true,
       lowercase: true,
-      match: [/^\S+@\S+\.\S+$/, "Invalid email format"], // Email validation regex
+      match: [/^\S+@\S+\.\S+$/, "Invalid email format"],
     },
     password: {
       type: String,
@@ -25,7 +25,7 @@ const userSchema = new Schema(
     phoneNumber: {
       type: String,
       required: true,
-      match: [/^\d{10}$/, "Phone number must be exactly 10 digits"], // Ensures exactly 10 digits
+      match: [/^\d{10}$/, "Phone number must be exactly 10 digits"],
     },
     location: {
       city: {
@@ -40,15 +40,22 @@ const userSchema = new Schema(
       },
     },
     sportsPreferences: {
-      type: [String], // Multi-select checkboxes (Array of Strings)
+      type: [String],
       default: [],
-      enum: ["Football", "Basketball", "Cricket", "Tennis", "Hockey", "Badminton"], // Allowed values
+      enum: ["Football", "Basketball", "Cricket", "Tennis", "Hockey", "Badminton"],
     },
+
+   // ✅ Add these here inside the same object
+    resetToken: {
+      type: String,
+    },
+    resetTokenExpires: {
+      type: Date,
+    }
   },
   {
-    timestamps: true, // Automatically adds createdAt & updatedAt fields
+    timestamps: true, // ✅ This stays here
   }
 );
-
 const User = mongoose.model("User", userSchema);
-module.exports = User
+module.exports = User;
