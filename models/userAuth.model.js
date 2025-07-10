@@ -42,7 +42,29 @@ const userSchema = new Schema(
     sportsPreferences: {
       type: [String],
       default: [],
-      enum: ["Football", "Basketball", "Cricket", "Tennis", "Hockey", "Badminton"],
+      enum: [
+    "Football",
+    "Basketball",
+    "Cricket",
+    "Tennis",
+    "Hockey",
+    "Badminton",
+    "Volleyball",
+    "Table Tennis",
+    "Kabaddi",
+    "Kho Kho",
+    "Baseball",
+    "Rugby",
+    "Handball",
+    "Golf",
+    "Boxing",
+    "Athletics",
+    "Swimming",
+    "Skating",
+    "Archery",
+    "Shooting",
+    "Chess",    
+  ]
     },
 
    // ✅ Add these here inside the same object
