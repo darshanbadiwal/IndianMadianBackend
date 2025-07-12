@@ -25,7 +25,7 @@ exports.createBooking = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Create and save booking
+    // 1. Create booking
     const booking = await Booking.create({
       userId,
       turfId,
@@ -38,10 +38,50 @@ exports.createBooking = async (req, res) => {
       advancePaid,
       amountDueAtVenue,
       totalPrice,
-      status: "Confirmed" // or "Pending" if payment isn't fully made
+      status: "Confirmed"
     });
 
+    // 2. Fetch turf owner's FCM token
+    const turf = await Turf.findById(turfId).populate('userId');
+    if (!turf) {
+      console.log("❌ Turf not found");
+      return res.status(201).json(booking); // Still return success
+    }
+
+    const owner = turf.userId;
+    if (!owner?.fcmToken) {
+      console.log("⚠️ Owner has no FCM token");
+      return res.status(201).json(booking);
+    }
+
+    // 3. Send notification
+    try {
+      await sendPushNotification({
+        token: owner.fcmToken,
+        notification: {
+          title: `New ${sport} Booking`,
+          body: `Booking at ${turf.name} for ${new Date(startTime).toLocaleString()}`
+        },
+        android: {
+          priority: "high",
+          notification: {
+            channel_id: "booking_alerts",
+            sound: "default"
+          }
+        },
+        data: {
+          type: "new_booking",
+          booking_id: booking._id.toString(),
+          turf_id: turfId
+        }
+      });
+      console.log("✅ Notification sent to owner");
+    } catch (notificationError) {
+      console.error("❌ Notification failed:", notificationError);
+    }
+
     return res.status(201).json(booking);
+    
   } catch (err) {
     console.error("Create booking error:", err);
     res.status(500).json({ message: "Server Error" });
