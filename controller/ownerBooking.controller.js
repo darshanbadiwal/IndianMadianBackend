@@ -5,7 +5,7 @@ const Turf = require('../models/turf.model');
 const TurfOwner = require('../models/turfOwner.model');
 const { default: mongoose } = require("mongoose");
 
-const { sendWhatsAppMessage } = require('../utils/gupshup');
+
 
 // GET /api/owner/bookings
 const ownerBookings = async (req, res) => {
@@ -91,7 +91,7 @@ const getBookingsByTurfId = async (req, res) => {
   }
 };
 
-// ✅ Booking creation and WhatsApp simulation (SAFE)
+// ✅ Booking creation and push notification with firebase
 const createOwnerBooking = async (req, res) => {
   try {
     const { turfId, userId, startTime, endTime, totalPrice } = req.body;
@@ -108,19 +108,16 @@ const createOwnerBooking = async (req, res) => {
     const owner = await TurfOwner.findById(turf.userId);
     const user = await User.findById(userId).select("name"); // ✅ Only get name
 
-    if (!owner || !owner.phone) {
-      return res.status(404).json({ message: 'Owner phone number not found' });
+    // ✅ Send Push Notification if fcmToken is present
+    if (owner?.fcmToken) {
+      await sendPushNotification(
+        owner.fcmToken,
+        'New Turf Booking Received',
+        `Your turf is booked by ${user?.name || 'a customer'} from ${startTime} to ${endTime}.`
+      );
     }
 
-    await sendWhatsAppMessage(
-      owner.phone,
-      owner.name,
-      user?.name || "Customer",
-      `${startTime}–${endTime}`,
-      booking.date || new Date().toDateString()
-    );
-
-    res.status(200).json({ message: 'Booking saved and WhatsApp simulated!', booking });
+    res.status(200).json({ message: 'Booking saved and notification sent!', booking });
   } catch (error) {
     console.error('❌ Booking Error:', error.message);
     res.status(500).json({ error: 'Failed to create booking' });

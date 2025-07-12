@@ -11,6 +11,12 @@ const turfOwnerSchema = new mongoose.Schema({
     required: true
   }],
   
+  // ✅ FCM token for push notification
+  fcmToken: {
+    type: String,
+    default: null
+  },
+  
   createdAt: { type: Date, default: Date.now },
   // 👇 Add these two linesv for forgot password for turf owner
   resetToken: { type: String },
