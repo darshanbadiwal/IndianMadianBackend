@@ -1,4 +1,8 @@
 const Booking = require("../models/booking.model");
+const Booking = require("../models/booking.model");
+const Turf = require('../models/turf.model'); // ⭐ ADD THIS
+const TurfOwner = require('../models/turfOwner.model'); // ⭐ ADD THIS
+const { sendPushNotification } = require('../utils/fcm');
 
 // ========== USER SIDE: create booking ==========
 exports.createBooking = async (req, res) => {
