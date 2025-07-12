@@ -118,6 +118,10 @@ const updateFcmToken = async (req, res) => {
     const ownerId = req.params.id;
     const { fcmToken } = req.body;
 
+    console.log("💡 Token update API called");
+    console.log("🧾 ownerId:", ownerId);
+    console.log("📲 fcmToken:", fcmToken);
+
     if (!fcmToken) {
       return res.status(400).json({ message: 'Missing FCM token' });
     }
@@ -129,6 +133,7 @@ const updateFcmToken = async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 };
+
 
 
 module.exports = {
