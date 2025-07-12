@@ -1,9 +1,8 @@
 const Booking = require("../models/booking.model");
-const Turf = require('../models/turf.model'); // ⭐ ADD THIS
-const TurfOwner = require('../models/turfOwner.model'); // ⭐ ADD THIS
+const Turf = require('../models/turf.model');
+const TurfOwner = require('../models/turfOwner.model');
 const { sendPushNotification } = require('../utils/fcm');
 
-// ========== USER SIDE: create booking ==========
 exports.createBooking = async (req, res) => {
   try {
     const {
@@ -21,10 +20,8 @@ exports.createBooking = async (req, res) => {
     } = req.body;
 
     // Basic validation
-    if (
-      !userId || !turfId || !startTime || !endTime || !sport ||
-      !bookingDate || !selectedSlots || !totalPrice
-    ) {
+    if (!userId || !turfId || !startTime || !endTime || !sport || 
+        !bookingDate || !selectedSlots || !totalPrice) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -44,43 +41,41 @@ exports.createBooking = async (req, res) => {
       status: "Confirmed"
     });
 
-    // 2. Fetch turf owner's FCM token
+    // 2. Fetch turf owner's details
     const turf = await Turf.findById(turfId).populate('userId');
-    if (!turf) {
-      console.log("❌ Turf not found");
-      return res.status(201).json(booking); // Still return success
-    }
-
-    const owner = turf.userId;
-    if (!owner?.fcmToken) {
-      console.log("⚠️ Owner has no FCM token");
+    if (!turf || !turf.userId) {
+      console.log(turf ? "⚠️ Turf has no owner" : "❌ Turf not found");
       return res.status(201).json(booking);
     }
 
-    // 3. Send notification
-    try {
-      await sendPushNotification({
-        token: owner.fcmToken,
-        notification: {
-          title: `New ${sport} Booking`,
-          body: `Booking at ${turf.name} for ${new Date(startTime).toLocaleString()}`
-        },
-        android: {
-          priority: "high",
+    const owner = turf.userId;
+    
+    // 3. Send notification if token exists
+    if (owner?.fcmToken) {
+      console.log("📲 FCM Token Type:", typeof owner.fcmToken);
+      
+      try {
+        await sendPushNotification({
+          token: String(owner.fcmToken), // Ensure string conversion
           notification: {
-            channel_id: "booking_alerts",
-            sound: "default"
+            title: `New ${sport} Booking`,
+            body: `${turf.name} booked for ${new Date(startTime).toLocaleString()}`
+          },
+          data: {
+            booking_id: booking._id.toString(),
+            turf_id: turfId,
+            type: "new_booking"
           }
-        },
-        data: {
-          type: "new_booking",
-          booking_id: booking._id.toString(),
-          turf_id: turfId
-        }
-      });
-      console.log("✅ Notification sent to owner");
-    } catch (notificationError) {
-      console.error("❌ Notification failed:", notificationError);
+        });
+        console.log("✅ Notification queued successfully");
+      } catch (error) {
+        console.error("❌ Notification failed:", {
+          error: error.message,
+          token: owner.fcmToken?.substring(0, 10)
+        });
+      }
+    } else {
+      console.log("⚠️ No FCM token for owner:", owner.email || owner._id);
     }
 
     return res.status(201).json(booking);
@@ -90,7 +85,6 @@ exports.createBooking = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
-
 
 // ========== USER SIDE: fetch bookings for a specific user ==========
 exports.getUserBookings = async (req, res) => {
