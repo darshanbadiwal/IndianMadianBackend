@@ -107,25 +107,43 @@ const createOwnerBooking = async (req, res) => {
     });
 
     const turf = await Turf.findById(turfId);
-    const owner = await TurfOwner.findById(turf.userId);
-    const user = await User.findById(userId).select("name"); // ✅ Only get name
-
-    // ✅ Send Push Notification if fcmToken is present
-    if (owner?.fcmToken) {
-      await sendPushNotification(
-        owner.fcmToken,
-        'New Turf Booking Received',
-        `Your turf is booked by ${user?.name || 'a customer'} from ${startTime} to ${endTime}.`
-      );
+    if (!turf) {
+      console.log("❌ Turf not found with ID:", turfId);
+      return res.status(404).json({ error: 'Turf not found' });
     }
 
-    res.status(200).json({ message: 'Booking saved and notification sent!', booking });
+    const owner = await TurfOwner.findById(turf.userId);
+    if (!owner) {
+      console.log("❌ Owner not found for turf:", turfId);
+      return res.status(404).json({ error: 'Owner not found' });
+    }
+
+    const user = await User.findById(userId).select("name");
+    
+    console.log("🔔 Attempting to send notification to owner:", owner.email);
+    console.log("📱 Owner FCM Token:", owner.fcmToken);
+
+    if (owner?.fcmToken) {
+      try {
+        await sendPushNotification(
+          owner.fcmToken,
+          'New Turf Booking Received',
+          `Your turf ${turf.name} is booked by ${user?.name || 'a customer'} from ${startTime} to ${endTime}.`
+        );
+        console.log("✅ Notification sent successfully");
+      } catch (notificationError) {
+        console.error("❌ Notification sending failed:", notificationError);
+      }
+    } else {
+      console.log("⚠️ No FCM token available for owner:", owner.email);
+    }
+
+    res.status(200).json({ message: 'Booking saved!', booking });
   } catch (error) {
     console.error('❌ Booking Error:', error.message);
     res.status(500).json({ error: 'Failed to create booking' });
   }
 };
-
 module.exports = {
   getBookingsByTurfId,
   ownerBookings,
