@@ -111,11 +111,32 @@ const updateProfile = async (req, res) => {
   }
 };
 
+
+
+const updateFcmToken = async (req, res) => {
+  try {
+    const ownerId = req.params.id;
+    const { fcmToken } = req.body;
+
+    if (!fcmToken) {
+      return res.status(400).json({ message: 'Missing FCM token' });
+    }
+
+    await TurfOwner.findByIdAndUpdate(ownerId, { fcmToken });
+    res.status(200).json({ message: '✅ FCM Token saved successfully' });
+  } catch (error) {
+    console.error('❌ Error saving FCM token:', error.message);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+
 module.exports = {
   registerTurfOwner,
   loginTurfOwner,
    forgotPassword,      // 👈 Add this line
   resetPassword,
   getProfile,
-  updateProfile 
+  updateProfile,
+  updateFcmToken
 };
