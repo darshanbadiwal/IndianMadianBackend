@@ -124,24 +124,30 @@ const createOwnerBooking = async (req, res) => {
     console.log("📱 Owner FCM Token:", owner.fcmToken);
 
     if (owner?.fcmToken) {
-      try {
-        await sendPushNotification(
-          owner.fcmToken,
-          'New Turf Booking Received',
-          `Your turf ${turf.name} is booked by ${user?.name || 'a customer'} from ${startTime} to ${endTime}.`
-        );
-        console.log("✅ Notification sent successfully");
-      } catch (notificationError) {
-        console.error("❌ Notification sending failed:", notificationError);
-      }
-    } else {
-      console.log("⚠️ No FCM token available for owner:", owner.email);
+      const payload = {
+        token: owner.fcmToken,
+        notification: {
+          title: `New Booking: ${turf.name}`,
+          body: `Booked by ${user?.name || "Customer"} for ${new Date(startTime).toLocaleString()}`
+        },
+        data: { // Required for background notifications
+          click_action: "OPEN_BOOKING_DETAILS",
+          booking_id: booking._id.toString(),
+          turf_id: turfId
+        },
+        android: { // For Android priority
+          priority: "high"
+        }
+      };
+
+      await sendPushNotification(payload); // Fix this line if needed
+      console.log("📢 Notification sent to:", owner.email);
     }
 
-    res.status(200).json({ message: 'Booking saved!', booking });
+    res.status(200).json({ message: "Booking created!", booking });
   } catch (error) {
-    console.error('❌ Booking Error:', error.message);
-    res.status(500).json({ error: 'Failed to create booking' });
+    console.error("❌ Booking Error:", error);
+    res.status(500).json({ error: error.message });
   }
 };
 module.exports = {

@@ -1,89 +1,61 @@
 const admin = require('firebase-admin');
 const path = require('path');
 
-// Load Firebase config
+// 1. Load Firebase config
 const serviceAccountPath = path.join(__dirname, '../firebase/firebase-config.json');
-
 try {
   require.resolve(serviceAccountPath);
 } catch (e) {
-  console.error("❌ Firebase config file not found at:", serviceAccountPath);
-  throw new Error('Firebase config file not found');
+  throw new Error('Firebase config file missing at: ' + serviceAccountPath);
 }
 
 const serviceAccount = require(serviceAccountPath);
 
-// Verify service account
-if (!serviceAccount.project_id || !serviceAccount.private_key) {
-  console.error("❌ Invalid Firebase service account configuration");
-  throw new Error('Invalid Firebase service account');
-}
-
-// Initialize Admin SDK only once
+// 2. Initialize Firebase Admin (Android-only)
 if (!admin.apps.length) {
-  try {
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
-    console.log('✅ Firebase Admin initialized successfully');
-  } catch (initError) {
-    console.error('❌ Firebase Admin initialization failed:', initError);
-    throw initError;
-  }
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+  console.log('🔥 Firebase Admin Ready (Android)');
 }
 
-const sendPushNotification = async (token, title, body) => {
+const sendPushNotification = async (token, title, body, data = {}) => {
   try {
-    console.log("🔔 Preparing to send notification...");
-    console.log("📱 Target token:", token);
-    console.log("📢 Title:", title);
-    console.log("📝 Body:", body);
-
-    if (!token || typeof token !== 'string' || token.trim() === '') {
-      throw new Error('Invalid or missing FCM token');
-    }
-
+    // 3. Validate Inputs
+    if (!token?.trim()) throw new Error('Invalid FCM token');
+    
+    // 4. Android-Only Payload
     const message = {
       token: token.trim(),
       notification: { title, body },
       android: {
+        priority: 'high',
         notification: {
           sound: 'default',
-          priority: 'high',
-          visibility: 'public',
-          notificationCount: 1,
-        },
+          channel_id: 'booking_alerts', // Must match AndroidManifest
+          vibrate_timings: [100, 200, 300], // Vibrate pattern
+          visibility: 'public'
+        }
       },
-      apns: {
-        payload: {
-          aps: {
-            sound: 'default',
-            badge: 1,
-          },
-        },
-      },
-      data: { // Add some data payload
-        click_action: 'FLUTTER_NOTIFICATION_CLICK',
-        type: 'new_booking',
-      },
+      data: {
+        ...data,
+        click_action: 'OPEN_BOOKING_DETAILS' // For intent handling
+      }
     };
 
-    console.log("✉️ Message payload:", JSON.stringify(message, null, 2));
-    
+    // 5. Send Notification
     const response = await admin.messaging().send(message);
-    console.log('✅ Notification sent successfully. Message ID:', response);
+    console.log('📲 Notification sent to:', token.substring(0, 10) + '...');
     return response;
+    
   } catch (error) {
-    console.error('❌ Error sending notification:', error);
+    console.error('❌ FCM Error:', error.code || error.message);
     
-    // Specific error handling
+    // Handle token errors
     if (error.code === 'messaging/invalid-registration-token') {
-      console.warn('⚠️ Invalid FCM token. Might need update:', token);
-    } else if (error.code === 'messaging/registration-token-not-registered') {
-      console.warn('⚠️ Token no longer registered:', token);
+      console.warn('⚠️ Token expired or invalid');
     }
-    
-    throw error; // Re-throw to handle in calling function
+    throw error;
   }
 };
 
