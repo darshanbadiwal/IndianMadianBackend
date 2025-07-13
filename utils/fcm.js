@@ -1,16 +1,29 @@
-const serviceAccount = require('../firebase/firebase-config.json');
 const admin = require('firebase-admin');
+const path = require('path');
 
+// ✅ Load Firebase credentials
+const serviceAccount = require(path.join(__dirname, '../firebase/firebase-config.json'));
+
+// ✅ Initialize Firebase once
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+  console.log('✅ Firebase Admin initialized');
+}
+
+/**
+ * Send FCM Push Notification
+ */
 const sendPushNotification = async ({ token, notification, data }) => {
   try {
     const message = {
-      token: token.trim(),
+      token,
       notification,
       data,
       android: {
         notification: {
           sound: 'default',
-          priority: 'high',
         },
       },
       apns: {
@@ -23,11 +36,14 @@ const sendPushNotification = async ({ token, notification, data }) => {
     };
 
     const response = await admin.messaging().send(message);
-    console.log("✅ Notification sent:", response);
+    console.log('✅ Notification sent:', response);
     return response;
-  } catch (err) {
-    console.error("❌ Notification failed:", err.message);
-    throw err;
+  } catch (error) {
+    console.error("❌ Notification failed:", {
+      error: error.message,
+      token: token?.substring(0, 10)
+    });
+    return null;
   }
 };
 
