@@ -4,8 +4,6 @@ const User = require('../models/userAuth.model');
 const Turf = require('../models/turf.model');
 const TurfOwner = require('../models/turfOwner.model');
 const { default: mongoose } = require("mongoose");
-const { sendPushNotification } = require('../utils/fcm');
-
 
 
 
@@ -93,7 +91,7 @@ const getBookingsByTurfId = async (req, res) => {
   }
 };
 
-// ✅ Booking creation and push notification with firebase
+// ✅ Booking creation and WhatsApp simulation (SAFE)
 const createOwnerBooking = async (req, res) => {
   try {
     const { turfId, userId, startTime, endTime, totalPrice } = req.body;
@@ -107,51 +105,23 @@ const createOwnerBooking = async (req, res) => {
     });
 
     const turf = await Turf.findById(turfId);
-    if (!turf) {
-      console.log("❌ Turf not found with ID:", turfId);
-      return res.status(404).json({ error: 'Turf not found' });
-    }
-
     const owner = await TurfOwner.findById(turf.userId);
-    if (!owner) {
-      console.log("❌ Owner not found for turf:", turfId);
-      return res.status(404).json({ error: 'Owner not found' });
-    }
+    const user = await User.findById(userId).select("name"); // ✅ Only get name
 
-    const user = await User.findById(userId).select("name");
     
-    console.log("🔔 Attempting to send notification to owner:", owner.email);
-    console.log("📱 Owner FCM Token:", owner.fcmToken);
 
-    if (owner?.fcmToken) {
-      const payload = {
-        token: owner.fcmToken,
-        notification: {
-          title: `New Booking: ${turf.name}`,
-          body: `Booked by ${user?.name || "Customer"} for ${new Date(startTime).toLocaleString()}`
-        },
-        data: { // Required for background notifications
-          click_action: "OPEN_BOOKING_DETAILS",
-          booking_id: booking._id.toString(),
-          turf_id: turfId
-        },
-        android: { // For Android priority
-          priority: "high"
-        }
-      };
-
-      await sendPushNotification(payload); // Fix this line if needed
-      console.log("📢 Notification sent to:", owner.email);
-    }
-
-    res.status(200).json({ message: "Booking created!", booking });
+    res.status(200).json({ message: 'Booking saved and WhatsApp simulated!', booking });
   } catch (error) {
-    console.error("❌ Booking Error:", error);
-    res.status(500).json({ error: error.message });
+    console.error('❌ Booking Error:', error.message);
+    res.status(500).json({ error: 'Failed to create booking' });
   }
 };
+
 module.exports = {
   getBookingsByTurfId,
   ownerBookings,
   createOwnerBooking
 };
+
+
+
