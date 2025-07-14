@@ -10,7 +10,7 @@ router.post('/forgot-password', turfOwnerController.forgotPassword);
 router.post('/reset-password', turfOwnerController.resetPassword);
 router.get('/me', authMiddleware, turfOwnerController.getProfile);
 router.put('/me', authMiddleware, turfOwnerController.updateProfile);
-router.put('/update-token/:id', turfOwnerController.updateFcmToken);
+
 
 
 module.exports = router;
