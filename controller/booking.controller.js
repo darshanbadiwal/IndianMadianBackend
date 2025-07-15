@@ -111,29 +111,74 @@ exports.cancelBooking = async (req, res) => {
 exports.rescheduleBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
-    const { newStartTime, newEndTime } = req.body;
+    const { 
+      bookingDate,
+      startTime,
+      endTime,
+      selectedSlots
+    } = req.body;
 
-    const booking = await Booking.findByIdAndUpdate(
+    // Validate input
+    if (!bookingDate || !startTime || !endTime || !selectedSlots) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields'
+      });
+    }
+
+    // Check if booking exists
+    const existingBooking = await Booking.findById(bookingId);
+    if (!existingBooking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
+    // Check if new slots are available
+    const conflictingBookings = await Booking.find({
+      turfId: existingBooking.turfId,
+      _id: { $ne: bookingId }, // Exclude current booking
+      $or: [
+        { startTime: { $lt: new Date(endTime) }, endTime: { $gt: new Date(startTime) } }
+      ]
+    });
+
+    if (conflictingBookings.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Selected slots are already booked',
+        conflictingSlots: conflictingBookings.map(b => ({
+          start: b.startTime,
+          end: b.endTime
+        }))
+      });
+    }
+
+    // Update the booking
+    const updatedBooking = await Booking.findByIdAndUpdate(
       bookingId,
       {
-        startTime: newStartTime,
-        endTime: newEndTime,
+        startTime: new Date(startTime),
+        endTime: new Date(endTime),
+        bookingDate: new Date(bookingDate),
+        selectedSlots: selectedSlots,
         status: 'Rescheduled'
       },
       { new: true }
-    );
-
-    if (!booking) {
-      return res.status(404).json({ success: false, message: 'Booking not found' });
-    }
+    ).populate('turfId', 'turfName fullAddress image surfaceType');
 
     return res.status(200).json({
       success: true,
       message: 'Booking rescheduled successfully',
-      booking
+      booking: updatedBooking
     });
   } catch (err) {
     console.error("Reschedule booking error:", err);
-    return res.status(500).json({ success: false, message: "Server Error" });
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: err.message
+    });
   }
 };
