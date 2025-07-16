@@ -108,6 +108,7 @@ exports.cancelBooking = async (req, res) => {
 };
 
 //User side Rechudle booking button 
+// USER side: Reschedule Booking Controller
 exports.rescheduleBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
@@ -115,36 +116,51 @@ exports.rescheduleBooking = async (req, res) => {
       newStartTime,
       newEndTime,
       selectedSlots,
-      bookingDate,
-      totalPrice,
-      advancePaid,
-      amountDueAtVenue
+      bookingDate
     } = req.body;
 
-    const booking = await Booking.findByIdAndUpdate(
-      bookingId,
-      {
-        startTime: newStartTime,
-        endTime: newEndTime,
-        bookingDate,
-        selectedSlots,
-        totalPrice,
-        advancePaid,
-        amountDueAtVenue,
-        status: 'Rescheduled'
-      },
-      { new: true }
-    );
+    // 🔐 Validation
+    if (!newStartTime || !newEndTime || !selectedSlots || !bookingDate) {
+      return res.status(400).json({ success: false, message: "Missing required fields" });
+    }
 
+    const booking = await Booking.findById(bookingId);
     if (!booking) {
       return res.status(404).json({ success: false, message: 'Booking not found' });
     }
 
+    // ❌ Don’t allow rescheduling if already rescheduled
+    if (booking.rescheduleInfo?.hasRescheduled) {
+      return res.status(400).json({ success: false, message: "You can reschedule only once" });
+    }
+
+    // ❌ Don’t allow reschedule for cancelled or past bookings
+    if (booking.status === "Cancelled" || new Date(booking.startTime) < new Date()) {
+      return res.status(400).json({ success: false, message: "Cannot reschedule this booking" });
+    }
+
+    // ✅ Save old data in rescheduleInfo
+    booking.rescheduleInfo = {
+      hasRescheduled: true,
+      rescheduledAt: new Date(),
+      oldDate: booking.startTime,
+      oldSlots: booking.selectedSlots
+    };
+
+    // ✅ Update new details
+    booking.startTime = newStartTime;
+    booking.endTime = newEndTime;
+    booking.bookingDate = bookingDate;
+    booking.selectedSlots = selectedSlots;
+
+    await booking.save();
+
     return res.status(200).json({
       success: true,
-      message: 'Booking rescheduled successfully',
+      message: "Booking rescheduled successfully",
       booking
     });
+
   } catch (err) {
     console.error("Reschedule booking error:", err);
     return res.status(500).json({ success: false, message: "Server Error" });

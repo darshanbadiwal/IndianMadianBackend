@@ -15,6 +15,7 @@ router.patch("/:bookingId/cancel", bookingCtrl.cancelBooking);
 
 // Reschedule a booking.
 // PATCH /api/bookings/:bookingId/reschedule/
-router.patch("/:bookingId/reschedule", bookingCtrl.rescheduleBooking);
+router.patch('/:bookingId/reschedule', bookingCtrl.rescheduleBooking);
+
 
 module.exports = router;

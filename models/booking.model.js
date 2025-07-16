@@ -39,6 +39,20 @@ const bookingSchema = new Schema(
       type: String,
       enum: ["Pending", "Confirmed", "Cancelled"],
       default: "Pending"
+    },
+    // ✅ RESCHEDULE INFO — new section for reschedule tracking
+     rescheduleInfo: {
+      hasRescheduled: { type: Boolean, default: false },
+      rescheduledAt: { type: Date },
+      oldDate: { type: Date },
+      oldSlots: [
+        {
+          start: String,
+          end: String,
+          rawStart: Date,
+          rawEnd: Date
+        }
+      ]
     }
   },
   { timestamps: true }
