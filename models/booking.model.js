@@ -3,12 +3,12 @@ const Schema = mongoose.Schema;
 
 const bookingSchema = new Schema(
   {
-    userId:  { type: Schema.Types.ObjectId, ref: "User", required: true },
-    turfId:  { type: Schema.Types.ObjectId, ref: "Turf", required: true },
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    turfId: { type: Schema.Types.ObjectId, ref: "Turf", required: true },
 
     // Slot timing
     startTime: { type: Date, required: true },
-    endTime:   { type: Date, required: true },
+    endTime: { type: Date, required: true },
 
     // Sport selected
     sport: { type: String, required: true },
@@ -40,19 +40,24 @@ const bookingSchema = new Schema(
       enum: ["Pending", "Confirmed", "Cancelled"],
       default: "Pending"
     },
-    // ✅ RESCHEDULE INFO — new section for reschedule tracking
-     rescheduleInfo: {
+
+    // NEW FIELD: Can this booking be rescheduled?
+    canReschedule: { 
+      type: Boolean, 
+      default: true 
+    },
+
+    // NEW FIELD: Reschedule information
+    rescheduleInfo: {
       hasRescheduled: { type: Boolean, default: false },
       rescheduledAt: { type: Date },
       oldDate: { type: Date },
-      oldSlots: [
-        {
-          start: String,
-          end: String,
-          rawStart: Date,
-          rawEnd: Date
-        }
-      ]
+      oldSlots: [{
+        start: String,
+        end: String,
+        rawStart: Date,
+        rawEnd: Date
+      }]
     }
   },
   { timestamps: true }

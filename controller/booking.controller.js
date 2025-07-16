@@ -112,57 +112,81 @@ exports.cancelBooking = async (req, res) => {
 exports.rescheduleBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
-    const {
-      newStartTime,
-      newEndTime,
-      selectedSlots,
-      bookingDate
-    } = req.body;
+    const { newSlots } = req.body; // This should be an array of slots like the original
 
-    // 🔐 Validation
-    if (!newStartTime || !newEndTime || !selectedSlots || !bookingDate) {
-      return res.status(400).json({ success: false, message: "Missing required fields" });
-    }
-
+    // 1. Find the booking
     const booking = await Booking.findById(bookingId);
     if (!booking) {
       return res.status(404).json({ success: false, message: 'Booking not found' });
     }
 
-    // ❌ Don’t allow rescheduling if already rescheduled
-    if (booking.rescheduleInfo?.hasRescheduled) {
-      return res.status(400).json({ success: false, message: "You can reschedule only once" });
+    // 2. Check if reschedule is allowed
+    if (!booking.canReschedule) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "This booking cannot be rescheduled again" 
+      });
     }
 
-    // ❌ Don’t allow reschedule for cancelled or past bookings
-    if (booking.status === "Cancelled" || new Date(booking.startTime) < new Date()) {
-      return res.status(400).json({ success: false, message: "Cannot reschedule this booking" });
+    // 3. Validate the new slots
+    if (!newSlots || !Array.isArray(newSlots)) {  // FIXED: Added missing parenthesis
+      return res.status(400).json({
+        success: false,
+        message: "Invalid slot data provided"
+      });
     }
 
-    // ✅ Save old data in rescheduleInfo
-    booking.rescheduleInfo = {
-      hasRescheduled: true,
-      rescheduledAt: new Date(),
-      oldDate: booking.startTime,
-      oldSlots: booking.selectedSlots
+    // 4. Must keep same number of slots
+    if (newSlots.length !== booking.selectedSlots.length) {
+      return res.status(400).json({
+        success: false,
+        message: `You must select exactly ${booking.selectedSlots.length} slot(s)`
+      });
+    }
+
+    // 5. Validate all new slots are for the same original date
+    const originalDate = new Date(booking.bookingDate).toDateString();
+    const newDate = new Date(newSlots[0].rawStart).toDateString();
+    
+    if (originalDate !== newDate) {
+      return res.status(400).json({
+        success: false,
+        message: "You can only reschedule to different time slots on the same date"
+      });
+    }
+
+    // 6. Prepare the update
+    const updateData = {
+      startTime: new Date(newSlots[0].rawStart),
+      endTime: new Date(newSlots[newSlots.length - 1].rawEnd),
+      selectedSlots: newSlots,
+      canReschedule: false, // Disable future reschedules
+      rescheduleInfo: {
+        hasRescheduled: true,
+        rescheduledAt: new Date(),
+        oldDate: booking.bookingDate,
+        oldSlots: booking.selectedSlots
+      }
     };
 
-    // ✅ Update new details
-    booking.startTime = newStartTime;
-    booking.endTime = newEndTime;
-    booking.bookingDate = bookingDate;
-    booking.selectedSlots = selectedSlots;
-
-    await booking.save();
+    // 7. Update the booking
+    const updatedBooking = await Booking.findByIdAndUpdate(
+      bookingId,
+      updateData,
+      { new: true }
+    );
 
     return res.status(200).json({
       success: true,
       message: "Booking rescheduled successfully",
-      booking
+      booking: updatedBooking
     });
 
   } catch (err) {
     console.error("Reschedule booking error:", err);
-    return res.status(500).json({ success: false, message: "Server Error" });
+    return res.status(500).json({ 
+      success: false, 
+      message: "Server error during rescheduling" 
+    });
   }
 };
