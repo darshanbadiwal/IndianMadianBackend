@@ -25,6 +25,25 @@ exports.createBooking = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
+
+    // Check for conflicting bookings
+    const conflictingBookings = await Booking.find({
+      turfId,
+      bookingDate: new Date(bookingDate),
+      status: { $ne: "Cancelled" },
+      $or: selectedSlots.map(slot => ({
+        "selectedSlots.start": slot.start,
+        "selectedSlots.end": slot.end
+      }))
+    });
+
+    if (conflictingBookings.length > 0) {
+      return res.status(400).json({ 
+        message: "Some selected slots are already booked",
+        conflictingSlots: conflictingBookings.flatMap(b => b.selectedSlots)
+      });
+    }
+
     // Create and save booking
     const booking = await Booking.create({
       userId,
@@ -43,6 +62,12 @@ exports.createBooking = async (req, res) => {
 
     return res.status(201).json(booking);
   } catch (err) {
+    // Handle duplicate key error (MongoDB unique index)
+    if (err.code === 11000) {
+      return res.status(400).json({ 
+        message: "Some slots were just booked by someone else. Please try different slots."
+      });
+    }
     console.error("Create booking error:", err);
     res.status(500).json({ message: "Server Error" });
   }
@@ -164,5 +189,36 @@ exports.rescheduleBooking = async (req, res) => {
   } catch (err) {
     console.error("Reschedule booking error:", err);
     return res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+// Add this to your booking.controller.js
+exports.checkAvailability = async (req, res) => {
+  try {
+    const { turfId } = req.params;
+    const { date } = req.query; // Expecting date in YYYY-MM-DD format
+    
+    if (!turfId || !date) {
+      return res.status(400).json({ message: "Turf ID and date are required" });
+    }
+
+    const bookings = await Booking.find({
+      turfId,
+      bookingDate: new Date(date),
+      status: { $ne: "Cancelled" } // Don't include cancelled bookings
+    });
+
+    // Extract all booked slots
+    const bookedSlots = bookings.flatMap(booking => 
+      booking.selectedSlots.map(slot => ({
+        start: slot.start,
+        end: slot.end
+      }))
+    );
+
+    return res.status(200).json({ bookedSlots });
+  } catch (err) {
+    console.error("Check availability error:", err);
+    return res.status(500).json({ message: "Server Error" });
   }
 };

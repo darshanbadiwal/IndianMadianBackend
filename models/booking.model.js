@@ -34,6 +34,8 @@ const bookingSchema = new Schema(
     // Total amount for the booking
     totalPrice: { type: Number, required: true },
 
+    
+
     // Booking status
     status: {
       type: String,
@@ -42,6 +44,10 @@ const bookingSchema = new Schema(
     }
   },
   { timestamps: true }
+);
+bookingSchema.index(
+  { turfId: 1, bookingDate: 1, "selectedSlots.start": 1, "selectedSlots.end": 1 },
+  { unique: true, partialFilterExpression: { status: { $ne: "Cancelled" } } }
 );
 
 module.exports = mongoose.model("Booking", bookingSchema);

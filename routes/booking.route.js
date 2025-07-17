@@ -12,6 +12,8 @@ router.patch("/:bookingId/cancel", bookingCtrl.cancelBooking);
 // Reschedule a booking
 router.patch('/:bookingId/reschedule', bookingCtrl.rescheduleBooking);
 
+router.get("/availability/:turfId", bookingCtrl.checkAvailability);
+
 
 // ✅ This should always come last
 router.get("/:userId", bookingCtrl.getUserBookings);
