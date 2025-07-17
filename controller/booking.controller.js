@@ -25,27 +25,6 @@ exports.createBooking = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-        // 1. Get all same-date bookings for this turf
-const existingBookings = await Booking.find({
-  turfId,
-  bookingDate,
-  status: { $ne: "Cancelled" }
-});
-
-// 2. Extract all already booked "start" times
-const bookedSlotStarts = existingBookings
-  .map(b => b.selectedSlots.map(s => s.start)) // get start times only
-  .flat(); // flatten nested arrays
-
-// 3. Check for any overlap with user's selectedSlots
-const hasConflict = selectedSlots.some(s => bookedSlotStarts.includes(s.start));
-
-if (hasConflict) {
-  return res.status(400).json({
-    message: "One or more of your selected time slots are already booked. Please choose different time."
-  });
-}
-
     // Create and save booking
     const booking = await Booking.create({
       userId,
@@ -133,117 +112,57 @@ exports.cancelBooking = async (req, res) => {
 exports.rescheduleBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
-    const { newSlots } = req.body; // This should be an array of slots like the original
+    const {
+      newStartTime,
+      newEndTime,
+      selectedSlots,
+      bookingDate
+    } = req.body;
 
-    // 1. Find the booking
+    // 🔐 Validation
+    if (!newStartTime || !newEndTime || !selectedSlots || !bookingDate) {
+      return res.status(400).json({ success: false, message: "Missing required fields" });
+    }
+
     const booking = await Booking.findById(bookingId);
     if (!booking) {
       return res.status(404).json({ success: false, message: 'Booking not found' });
     }
 
-    // 2. Check if reschedule is allowed
-    if (!booking.canReschedule) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "This booking cannot be rescheduled again" 
-      });
+    // ❌ Don’t allow rescheduling if already rescheduled
+    if (booking.rescheduleInfo?.hasRescheduled) {
+      return res.status(400).json({ success: false, message: "You can reschedule only once" });
     }
 
-    // 3. Validate the new slots
-    if (!newSlots || !Array.isArray(newSlots)) {  // FIXED: Added missing parenthesis
-      return res.status(400).json({
-        success: false,
-        message: "Invalid slot data provided"
-      });
+    // ❌ Don’t allow reschedule for cancelled or past bookings
+    if (booking.status === "Cancelled" || new Date(booking.startTime) < new Date()) {
+      return res.status(400).json({ success: false, message: "Cannot reschedule this booking" });
     }
 
-    // 4. Must keep same number of slots
-    if (newSlots.length !== booking.selectedSlots.length) {
-      return res.status(400).json({
-        success: false,
-        message: `You must select exactly ${booking.selectedSlots.length} slot(s)`
-      });
-    }
-
-    // 5. Validate all new slots are for the same original date
-    const originalDate = new Date(booking.bookingDate).toDateString();
-    const newDate = new Date(newSlots[0].rawStart).toDateString();
-    
-    if (originalDate !== newDate) {
-      return res.status(400).json({
-        success: false,
-        message: "You can only reschedule to different time slots on the same date"
-      });
-    }
-
-    // 6. Prepare the update
-    const updateData = {
-      startTime: new Date(newSlots[0].rawStart),
-      endTime: new Date(newSlots[newSlots.length - 1].rawEnd),
-      selectedSlots: newSlots,
-      canReschedule: false, // Disable future reschedules
-      rescheduleInfo: {
-        hasRescheduled: true,
-        rescheduledAt: new Date(),
-        oldDate: booking.bookingDate,
-        oldSlots: booking.selectedSlots
-      }
+    // ✅ Save old data in rescheduleInfo
+    booking.rescheduleInfo = {
+      hasRescheduled: true,
+      rescheduledAt: new Date(),
+      oldDate: booking.startTime,
+      oldSlots: booking.selectedSlots
     };
 
-    // 7. Update the booking
-    const updatedBooking = await Booking.findByIdAndUpdate(
-      bookingId,
-      updateData,
-      { new: true }
-    );
+    // ✅ Update new details
+    booking.startTime = newStartTime;
+    booking.endTime = newEndTime;
+    booking.bookingDate = bookingDate;
+    booking.selectedSlots = selectedSlots;
+
+    await booking.save();
 
     return res.status(200).json({
       success: true,
       message: "Booking rescheduled successfully",
-      booking: updatedBooking
+      booking
     });
 
   } catch (err) {
     console.error("Reschedule booking error:", err);
-    return res.status(500).json({ 
-      success: false, 
-      message: "Server error during rescheduling" 
-    });
-  }
-};
-
-
-// ========== API: Get already booked slots for a turf on a given date ==========
-exports.getBookedSlots = async (req, res) => {
-  try {
-    const { turfId, bookingDate } = req.query;
-
-    if (!turfId || !bookingDate) {
-      return res.status(400).json({ message: "Missing turfId or bookingDate" });
-    }
-
-    // Convert bookingDate to start & end of the day for accurate filtering
-    const startOfDay = new Date(bookingDate);
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const endOfDay = new Date(bookingDate);
-    endOfDay.setHours(23, 59, 59, 999);
-
-    // Fetch all bookings for that turf on that date
-    const bookings = await Booking.find({
-      turfId,
-      bookingDate: { $gte: startOfDay, $lte: endOfDay },
-      status: { $ne: "Cancelled" }
-    });
-
-    // Flatten selectedSlots and return only 'start' fields (easier frontend checking)
-    const bookedSlots = bookings
-      .map(b => b.selectedSlots.map(s => s.start)) // extract start time from each slot
-      .flat();
-
-    return res.status(200).json({ bookedSlots });
-  } catch (err) {
-    console.error("Error fetching booked slots:", err);
-    res.status(500).json({ message: "Server Error" });
+    return res.status(500).json({ success: false, message: "Server Error" });
   }
 };
