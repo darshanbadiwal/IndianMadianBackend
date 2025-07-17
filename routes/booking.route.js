@@ -6,18 +6,18 @@ const bookingCtrl = require("../controller/booking.controller");
 // USER creates booking
 router.post("/create", bookingCtrl.createBooking);
 
-// Fetch bookings for a user
-router.get("/:userId", bookingCtrl.getUserBookings);
-
 // Cancel a booking
-// PATCH /api/bookings/:bookingId/cancel
 router.patch("/:bookingId/cancel", bookingCtrl.cancelBooking);
 
-// Reschedule a booking.
-// PATCH /api/bookings/:bookingId/reschedule/
+// Reschedule a booking
 router.patch('/:bookingId/reschedule', bookingCtrl.rescheduleBooking);
-//this will help user to to alredy book slot 
+
+// 🔐 MUST be placed before /:userId
 router.get("/booked-slots", bookingCtrl.getBookedSlots);
+
+// ✅ This should always come last
+router.get("/:userId", bookingCtrl.getUserBookings);
+
 
 
 module.exports = router;
