@@ -25,20 +25,26 @@ exports.createBooking = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-        // Conflict check: is any selected slot already booked?
-    const existingBookings = await Booking.find({
-      turfId,
-      bookingDate,
-      selectedSlots: { $in: selectedSlots },
-      status: { $ne: "Cancelled" } // ignore cancelled bookings
-    });
+        // 1. Get all same-date bookings for this turf
+const existingBookings = await Booking.find({
+  turfId,
+  bookingDate,
+  status: { $ne: "Cancelled" }
+});
 
-    if (existingBookings.length > 0) {
-      return res.status(400).json({
-        message: "One or more of your selected time slots are already booked. Please choose different time."
-      });
-    }
+// 2. Extract all already booked "start" times
+const bookedSlotStarts = existingBookings
+  .map(b => b.selectedSlots.map(s => s.start)) // get start times only
+  .flat(); // flatten nested arrays
 
+// 3. Check for any overlap with user's selectedSlots
+const hasConflict = selectedSlots.some(s => bookedSlotStarts.includes(s.start));
+
+if (hasConflict) {
+  return res.status(400).json({
+    message: "One or more of your selected time slots are already booked. Please choose different time."
+  });
+}
 
     // Create and save booking
     const booking = await Booking.create({
@@ -216,14 +222,24 @@ exports.getBookedSlots = async (req, res) => {
       return res.status(400).json({ message: "Missing turfId or bookingDate" });
     }
 
+    // Convert bookingDate to start & end of the day for accurate filtering
+    const startOfDay = new Date(bookingDate);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(bookingDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // Fetch all bookings for that turf on that date
     const bookings = await Booking.find({
       turfId,
-      bookingDate,
+      bookingDate: { $gte: startOfDay, $lte: endOfDay },
       status: { $ne: "Cancelled" }
     });
 
-    // Flatten all booked slots
-    const bookedSlots = bookings.map(b => b.selectedSlots).flat();
+    // Flatten selectedSlots and return only 'start' fields (easier frontend checking)
+    const bookedSlots = bookings
+      .map(b => b.selectedSlots.map(s => s.start)) // extract start time from each slot
+      .flat();
 
     return res.status(200).json({ bookedSlots });
   } catch (err) {
