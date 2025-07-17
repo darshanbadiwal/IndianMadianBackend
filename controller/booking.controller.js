@@ -25,6 +25,21 @@ exports.createBooking = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
+        // Conflict check: is any selected slot already booked?
+    const existingBookings = await Booking.find({
+      turfId,
+      bookingDate,
+      selectedSlots: { $in: selectedSlots },
+      status: { $ne: "Cancelled" } // ignore cancelled bookings
+    });
+
+    if (existingBookings.length > 0) {
+      return res.status(400).json({
+        message: "One or more of your selected time slots are already booked. Please choose different time."
+      });
+    }
+
+
     // Create and save booking
     const booking = await Booking.create({
       userId,
@@ -188,5 +203,31 @@ exports.rescheduleBooking = async (req, res) => {
       success: false, 
       message: "Server error during rescheduling" 
     });
+  }
+};
+
+
+// ========== API: Get already booked slots for a turf on a given date ==========
+exports.getBookedSlots = async (req, res) => {
+  try {
+    const { turfId, bookingDate } = req.query;
+
+    if (!turfId || !bookingDate) {
+      return res.status(400).json({ message: "Missing turfId or bookingDate" });
+    }
+
+    const bookings = await Booking.find({
+      turfId,
+      bookingDate,
+      status: { $ne: "Cancelled" }
+    });
+
+    // Flatten all booked slots
+    const bookedSlots = bookings.map(b => b.selectedSlots).flat();
+
+    return res.status(200).json({ bookedSlots });
+  } catch (err) {
+    console.error("Error fetching booked slots:", err);
+    res.status(500).json({ message: "Server Error" });
   }
 };
