@@ -1,4 +1,5 @@
  const Booking = require("../models/booking.model");
+ const Turf = require("../models/turf.model");
 
 // ========== USER SIDE: create booking ==========
 exports.createBooking = async (req, res) => {
